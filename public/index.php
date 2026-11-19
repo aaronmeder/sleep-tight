@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-require __DIR__ . '/lib/app.php';
+require __DIR__ . '/../lib/app.php';
 
 $setup = needs_setup();
 $authed = !$setup && is_authed();

@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-require __DIR__ . '/lib/app.php';
+require __DIR__ . '/../lib/app.php';
 
 function out(mixed $data, int $code = 200): never
 {
