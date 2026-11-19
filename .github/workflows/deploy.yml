@@ -39,3 +39,6 @@ jobs:
 
       - name: Run migrations
         run: ssh -p "$SSH_PORT" -i ~/.ssh/id_deploy "$SSH_USER@$SSH_HOST" "cd '$REMOTE_PATH' && $REMOTE_PHP bin/migrate"
+
+      - name: Diagnose (temporary)
+        run: ssh -p "$SSH_PORT" -i ~/.ssh/id_deploy "$SSH_USER@$SSH_HOST" "cd '$REMOTE_PATH' && stat -c '%A %F %n' . public public/index.php public/assets public/.htaccess data; ls -A public; ls -A . | wc -l; $REMOTE_PHP -v | head -1"
