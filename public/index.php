@@ -4,6 +4,7 @@ require __DIR__ . '/../lib/app.php';
 
 $setup = needs_setup();
 $authed = !$setup && is_authed();
+if ($authed) refresh_session();
 $v = fn(string $f) => $f . '?v=' . filemtime(__DIR__ . '/' . $f);
 header('Cache-Control: no-store');
 ?>

@@ -150,6 +150,12 @@ function start_session(): void
     send_cookie($t, time() + 400 * 86400);
 }
 
+/** Re-issues the cookie on each visit so the login keeps rolling forward (and old Strict cookies become Lax). */
+function refresh_session(): void
+{
+    send_cookie((string) $_COOKIE[COOKIE], time() + 400 * 86400);
+}
+
 function end_session(): void
 {
     if (!empty($_COOKIE[COOKIE])) {
@@ -160,8 +166,10 @@ function end_session(): void
 
 function send_cookie(string $value, int $expires): void
 {
+    // Lax, not Strict: the home-screen app is launched from outside the browser, and a Strict cookie
+    // may be withheld on that first navigation, which would show the login again.
     setcookie(COOKIE, $value, [
-        'expires' => $expires, 'path' => '/', 'httponly' => true, 'samesite' => 'Strict',
+        'expires' => $expires, 'path' => '/', 'httponly' => true, 'samesite' => 'Lax',
         'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
     ]);
 }

@@ -1,7 +1,9 @@
 {
   "name": "Sleep Tight",
   "short_name": "Sleep",
-  "start_url": ".",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#14111a",
   "theme_color": "#14111a",
