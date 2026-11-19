@@ -1,0 +1,29 @@
+#!/usr/bin/env php
+<?php
+declare(strict_types=1);
+
+// Usage: bin/migrate            apply pending migrations to this install
+//        bin/migrate --status   list applied/pending, change nothing
+//        bin/migrate --remote   same, against the live site in .sync.json (add --status for a dry run)
+
+require __DIR__ . '/../lib/app.php';
+require __DIR__ . '/../lib/remote.php';
+
+$status = in_array('--status', $argv, true);
+
+try {
+    if (in_array('--remote', $argv, true)) {
+        $cfg = remote_config();
+        $r = remote_call($cfg, 'migrate', ['dry' => $status]);
+        echo "Remote: {$cfg['url']}\n";
+    } else {
+        $pdo = db();
+        $r = ['applied' => $status ? [] : migrate($pdo)] + migration_status($pdo);
+    }
+    foreach ($r['applied'] as $m) echo c("  applied  $m", '32') . "\n";
+    foreach ($r['pending'] as $m) echo c("  pending  $m", '33') . "\n";
+    if (!$r['applied'] && !$r['pending']) echo "Up to date.\n";
+} catch (Throwable $e) {
+    fwrite(STDERR, c($e->getMessage(), '31') . "\n");
+    exit(1);
+}

@@ -1,0 +1,99 @@
+#!/usr/bin/env php
+<?php
+declare(strict_types=1);
+
+// Interactive two-way data sync between this install and the live site.
+// Rows are merged per night; the most recently edited version wins, deletes included.
+
+require __DIR__ . '/../lib/app.php';
+require __DIR__ . '/../lib/remote.php';
+
+function index(array $rows): array
+{
+    return array_column($rows, null, 'date');
+}
+
+function nights(array $rows): int
+{
+    return count(array_filter($rows, fn($r) => !(int) $r['deleted']));
+}
+
+/** Rows in $from that are missing from, or newer than, $to. */
+function newer(array $from, array $to): array
+{
+    return array_values(array_filter($from, fn($r) => !isset($to[$r['date']]) || (int) $r['updated_at'] > (int) $to[$r['date']]['updated_at']));
+}
+
+function backup_local(): string
+{
+    $dir = DATA_DIR . '/backups';
+    if (!is_dir($dir)) mkdir($dir, 0775, true);
+    $file = $dir . '/sleep-' . date('Ymd-His') . '.sqlite';
+    copy(DB_FILE, $file);
+    return $file;
+}
+
+function describe(array $rows): string
+{
+    $dates = array_column($rows, 'date');
+    sort($dates);
+    return count($dates) <= 6 ? implode(', ', $dates) : implode(', ', array_slice($dates, 0, 5)) . ', … ' . end($dates);
+}
+
+function pull(array $rows): void
+{
+    if (!$rows) { echo "Nothing to pull.\n"; return; }
+    echo c('  backup → ' . backup_local(), '2') . "\n";
+    echo c('  pulled ' . upsert_rows($rows) . ' night(s) into local', '32') . "\n";
+}
+
+function push(array $cfg, array $rows): void
+{
+    if (!$rows) { echo "Nothing to push.\n"; return; }
+    $r = remote_call($cfg, 'sync_import', ['entries' => $rows]);
+    echo c("  pushed {$r['written']} night(s) to remote", '32') . "\n";
+}
+
+$cfg = remote_config();
+db();
+
+while (true) {
+    try {
+        $local = index(raw_entries());
+        $remote = index(remote_call($cfg, 'sync_export')['entries']);
+    } catch (Throwable $e) {
+        echo c($e->getMessage(), '31') . "\n";
+        if (strtolower(ask('Change remote URL/token? (y/n)', 'y')) !== 'y') exit(1);
+        $cfg = remote_config(true);
+        continue;
+    }
+    $toPull = newer($remote, $local);
+    $toPush = newer($local, $remote);
+
+    echo "\n" . c('Sleep Tight · sync', '1') . "\n";
+    printf("  local   %3d nights  %s\n", nights($local), c('data/sleep.sqlite', '2'));
+    printf("  remote  %3d nights  %s\n", nights($remote), c($cfg['url'], '2'));
+    echo "\n";
+    printf("  [1] Pull   remote → local   %s\n", $toPull ? c(count($toPull) . ' change(s): ' . describe($toPull), '33') : c('up to date', '2'));
+    printf("  [2] Push   local → remote   %s\n", $toPush ? c(count($toPush) . ' change(s): ' . describe($toPush), '33') : c('up to date', '2'));
+    echo "  [3] Both ways (newest wins)\n";
+    echo "  [m] Run migrations on remote\n";
+    echo "  [c] Change remote URL/token\n";
+    echo "  [q] Quit\n\n";
+
+    try {
+        switch (strtolower(ask('Choose', 'q'))) {
+            case '1': pull($toPull); break;
+            case '2': push($cfg, $toPush); break;
+            case '3': pull($toPull); push($cfg, $toPush); break;
+            case 'm':
+                $r = remote_call($cfg, 'migrate', []);
+                echo $r['applied'] ? c('  applied: ' . implode(', ', $r['applied']), '32') . "\n" : "  Remote schema already up to date.\n";
+                break;
+            case 'c': $cfg = remote_config(true); break;
+            case 'q': exit(0);
+        }
+    } catch (Throwable $e) {
+        echo c($e->getMessage(), '31') . "\n";
+    }
+}

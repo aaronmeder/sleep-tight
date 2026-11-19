@@ -1,0 +1,4 @@
+/data/*
+!/data/.htaccess
+/.sync.json
+.DS_Store

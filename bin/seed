@@ -1,0 +1,40 @@
+#!/usr/bin/env php
+<?php
+declare(strict_types=1);
+
+// Dev only: fills an empty database with ~45 nights of plausible demo data.
+// Usage: bin/seed   (refuses to run when nights already exist)
+
+require __DIR__ . '/../lib/app.php';
+
+if (db()->query('SELECT COUNT(*) FROM entries')->fetchColumn() > 0) {
+    fwrite(STDERR, "Database already has entries; not seeding.\n");
+    exit(1);
+}
+
+mt_srand(7);
+$pick = fn(array $options, int $pct) => array_values(array_filter(array_keys($options), fn() => mt_rand(1, 100) <= $pct));
+$rows = [];
+for ($i = 45; $i >= 1; $i--) {
+    if (mt_rand(1, 100) <= 8) continue; // a few skipped nights
+    $evening = $pick(TAGS['evening'], 22);
+    $day = $pick(TAGS['day'], 25);
+    $q = 68 + mt_rand(-12, 12)
+        - (in_array('alcohol', $evening) ? 16 : 0) - (in_array('screen', $evening) ? 7 : 0) - (in_array('late', $evening) ? 9 : 0)
+        + (in_array('reading', $evening) ? 9 : 0) + (in_array('sports', $day) ? 8 : 0) - (in_array('caffeine', $day) ? 8 : 0);
+    $q = max(15, min(98, $q));
+    $rows[] = [
+        'date' => date('Y-m-d', strtotime("-$i days")),
+        'hours' => round((5.5 + $q / 40 + mt_rand(-4, 4) / 4) * 4) / 4,
+        'breaks' => $q < 55 ? mt_rand(1, 4) : mt_rand(0, 1),
+        'quality' => $q,
+        'clothing' => json_encode([mt_rand(0, 2) ? 'tshirt' : 'naked']),
+        'day' => json_encode($day),
+        'evening' => json_encode($evening),
+        'specifics' => json_encode($q < 50 ? $pick(TAGS['specifics'], 45) : []),
+        'note' => '',
+        'updated_at' => time(),
+        'deleted' => 0,
+    ];
+}
+echo 'Seeded ' . upsert_rows($rows, true) . " nights.\n";

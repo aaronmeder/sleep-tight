@@ -1,0 +1,4 @@
+# Keep the database, code internals and dotfiles out of reach.
+RedirectMatch 404 (^|/)(data|lib|bin|migrations)(/|$)
+RedirectMatch 404 (^|/)\.(?!well-known)
+Options -Indexes
