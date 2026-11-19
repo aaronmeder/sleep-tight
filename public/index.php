@@ -42,16 +42,20 @@ header('Cache-Control: no-store');
 <?php else: ?>
 
 <main id="view-log" hidden>
-  <header class="datebar">
-    <button id="prev" class="icon" aria-label="Previous night">‹</button>
+  <header class="week">
     <label class="datebtn">
       <span id="dateTitle"></span>
       <small id="dateSub"></small>
       <input type="date" id="datePick" aria-label="Pick date">
     </label>
-    <button id="next" class="icon" aria-label="Next night">›</button>
+    <div class="week-row">
+      <button id="prev" class="icon" aria-label="Previous week">‹</button>
+      <div class="week-days" id="week"></div>
+      <button id="next" class="icon" aria-label="Next week">›</button>
+    </div>
   </header>
 
+  <div id="logBody">
   <section class="card">
     <div class="row">
       <h2>Sleep</h2>
@@ -92,7 +96,7 @@ header('Cache-Control: no-store');
   </section>
 
   <section class="card">
-    <h2>Clothing</h2><div class="chips" data-group="clothing"></div>
+    <h2>Clothing</h2><div class="chips connected" data-group="clothing"></div>
     <h2>Day before</h2><div class="chips" data-group="day"></div>
     <h2>Evening before</h2><div class="chips" data-group="evening"></div>
     <h2>Specifics</h2><div class="chips" data-group="specifics"></div>
@@ -104,6 +108,7 @@ header('Cache-Control: no-store');
   </section>
 
   <button id="del" class="link danger" hidden>Delete this night</button>
+  </div>
 </main>
 
 <main id="view-stats">

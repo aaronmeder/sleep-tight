@@ -47,9 +47,12 @@ const addDays = (s, n) => { const d = parse(s); d.setDate(d.getDate() + n); retu
 const today = () => iso(new Date());
 const fmt = (s, opts) => parse(s).toLocaleDateString('en-GB', opts);
 const fmtHours = h => `${Math.floor(h)}h ${String(Math.round((h % 1) * 60)).padStart(2, '0')}`;
+const fmtClock = h => `${Math.floor(h)}:${String(Math.round((h % 1) * 60)).padStart(2, '0')}`;
+const weekStart = s => addDays(s, -((parse(s).getDay() + 6) % 7)); // weeks start on Monday
 
 // --- state ------------------------------------------------------------------
 const GROUPS = Object.keys(TAGS);
+const SINGLE = ['clothing']; // groups where picking one clears the others
 let entries = {};          // date -> entry
 let f = null;              // form state for the current date
 let dirty = false;
@@ -72,7 +75,7 @@ function open(date) {
   for (const g of GROUPS) f[g] = (f[g] || []).filter(slug => slug in TAGS[g]);
   dirty = false;
   renderLog();
-  if (dir) play($('#view-log'), dir);
+  if (dir) play($('#logBody'), dir);
 }
 
 // --- log view ---------------------------------------------------------------
@@ -122,7 +125,7 @@ function renderLog() {
   $('#dateSub').textContent = `${fmt(addDays(f.date, -1), { weekday: 'short', day: 'numeric' })} → ${fmt(f.date, { weekday: 'short', day: 'numeric', month: 'short' })}`;
   $('#datePick').value = f.date;
   $('#datePick').max = t;
-  $('#next').disabled = f.date >= t;
+  renderWeek();
   renderValues();
   for (const g of GROUPS) {
     $(`.chips[data-group=${g}]`).innerHTML = Object.entries(TAGS[g]).map(([slug, label]) =>
@@ -132,6 +135,23 @@ function renderLog() {
   growNote();
   $('#del').hidden = !entries[f.date];
   renderSave();
+}
+
+// Week strip: Monday to Sunday around the open night, hours slept under each logged day.
+let shownWeek = null, shownDate = null;
+function renderWeek() {
+  const t = today(), start = weekStart(f.date);
+  $('#week').innerHTML = Array.from({ length: 7 }, (_, i) => {
+    const d = addDays(start, i), e = entries[d], on = d === f.date;
+    return `<button class="wd${on ? ' on' : ''}${d === t ? ' today' : ''}${e ? ' has' : ''}" data-date="${d}"${d > t ? ' disabled' : ''} aria-pressed="${on}"
+      aria-label="${fmt(d, { weekday: 'long', day: 'numeric', month: 'long' })}, ${e ? fmtHours(e.hours) : 'not logged'}">
+      <small>${fmt(d, { weekday: 'short' }).slice(0, 2)}</small><i>${parse(d).getDate()}</i><span>${e ? fmtClock(e.hours) : '–'}</span></button>`;
+  }).join('');
+  $('#next').disabled = addDays(start, 7) > t;
+  if (shownWeek && shownWeek !== start) play($('#week'), start > shownWeek ? 'from-right' : 'from-left');
+  else if (shownDate && shownDate !== f.date) play($('.wd.on i'), 'pop');
+  shownWeek = start;
+  shownDate = f.date;
 }
 
 function renderSave(flash) {
@@ -156,12 +176,16 @@ document.addEventListener('click', e => {
   }
   const chip = e.target.closest('.chip');
   if (chip) {
-    const list = f[chip.parentElement.dataset.group], slug = chip.dataset.tag;
-    const on = !list.includes(slug);
-    on ? list.push(slug) : list.splice(list.indexOf(slug), 1);
-    chip.classList.toggle('on', on);
-    chip.setAttribute('aria-pressed', on);
-    if (on) play(chip, 'pop');
+    const box = chip.parentElement, g = box.dataset.group, slug = chip.dataset.tag, single = SINGLE.includes(g);
+    const on = !f[g].includes(slug);
+    if (single) f[g] = on ? [slug] : [];
+    else on ? f[g].push(slug) : f[g].splice(f[g].indexOf(slug), 1);
+    $$('.chip', box).forEach(c => {
+      const sel = f[g].includes(c.dataset.tag);
+      c.classList.toggle('on', sel);
+      c.setAttribute('aria-pressed', sel);
+    });
+    if (on && !single) play(chip, 'pop'); // connected groups only morph their shape
     tick();
     return touch();
   }
@@ -171,8 +195,12 @@ for (const k of ['hours', 'quality']) {
   $('#' + k).addEventListener('input', e => { f[k] = Number(e.target.value); renderValues('slide'); touch(); });
 }
 $('#note').addEventListener('input', e => { f.note = e.target.value; growNote(); touch(); });
-$('#prev').addEventListener('click', () => open(addDays(f.date, -1)));
-$('#next').addEventListener('click', () => open(addDays(f.date, 1)));
+$('#prev').addEventListener('click', () => { tick(); open(addDays(f.date, -7)); });
+$('#next').addEventListener('click', () => { tick(); open(addDays(f.date, 7)); });
+$('#week').addEventListener('click', e => {
+  const d = e.target.closest('.wd');
+  if (d && d.dataset.date !== f.date) { tick(); open(d.dataset.date); }
+});
 $('#datePick').addEventListener('change', e => e.target.value && open(e.target.value));
 
 saveBtn.addEventListener('click', async () => {
@@ -183,6 +211,7 @@ saveBtn.addEventListener('click', async () => {
     entries[f.date] = structuredClone(f);
     dirty = false;
     $('#del').hidden = false;
+    renderWeek();
     renderSave('Sleep tight ✓');
     play(saveBtn, 'done');
     tick(20);
@@ -216,7 +245,7 @@ function show(v) {
   saveBtn.hidden = v !== 'log';
   $$('.tabs [data-view]').forEach(b => { b.classList.toggle('on', b.dataset.view === v); if (b.dataset.view === v) play(b.firstElementChild, 'pill-in'); });
   if (v === 'stats') renderStats();
-  play($('#view-' + v), 'fade-in');
+  play($('#view-' + v), 'enter');
   scrollTo(0, 0);
 }
 
