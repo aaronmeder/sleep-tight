@@ -9,7 +9,7 @@ const COOKIE = 'sleeptight';
 /** Quick-select options. Edit freely; stored values are the slugs (keys). */
 const TAGS = [
     'clothing' => [
-        'tshirt' => 'T-shirt', 'naked' => 'Naked', 'pyjamas' => 'Pyjamas', 'underwear' => 'Underwear',
+        'tshirt' => 'T-shirt', 'naked' => 'Naked',
     ],
     'day' => [
         'sports' => 'Sports', 'stress' => 'Stressful', 'outdoors' => 'Outdoors', 'nap' => 'Nap', 'caffeine' => 'Late caffeine',
@@ -22,6 +22,29 @@ const TAGS = [
         'woke_early' => 'Woke very early', 'awake_night' => 'Awake during the night', 'no_sleep' => "Couldn't get to sleep",
     ],
 ];
+
+/** Chip icons: group => slug => Phosphor icon name (public/assets/icons/<name>.svg). */
+const ICONS = [
+    'clothing' => ['tshirt' => 't-shirt', 'naked' => 'person-arms-spread'],
+    'day' => ['sports' => 'person-simple-run', 'stress' => 'lightning', 'outdoors' => 'tree', 'nap' => 'bed', 'caffeine' => 'coffee'],
+    'evening' => [
+        'alcohol' => 'wine', 'ate_a_lot' => 'fork-knife', 'screen' => 'device-mobile', 'reading' => 'book-open',
+        'sports' => 'barbell', 'late' => 'moon-stars', 'spirituality' => 'hands-praying', 'spouse' => 'heart', 'friends' => 'users-three',
+    ],
+    'specifics' => ['woke_early' => 'sun-horizon', 'awake_night' => 'eye', 'no_sleep' => 'hourglass'],
+];
+
+/** Inline SVG sprite with one <symbol id="i-name"> per icon file. */
+function icon_sprite(): string
+{
+    $out = '<svg xmlns="http://www.w3.org/2000/svg" style="display:none">';
+    foreach (glob(__DIR__ . '/../public/assets/icons/*.svg') ?: [] as $file) {
+        if (preg_match('~<svg[^>]*>(.*)</svg>~s', file_get_contents($file), $m)) {
+            $out .= '<symbol id="i-' . basename($file, '.svg') . '" viewBox="0 0 256 256">' . $m[1] . '</symbol>';
+        }
+    }
+    return $out . '</svg>';
+}
 
 const ENTRY_COLS = ['date', 'hours', 'breaks', 'quality', 'clothing', 'day', 'evening', 'specifics', 'note', 'updated_at', 'deleted'];
 

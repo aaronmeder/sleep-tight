@@ -28,7 +28,7 @@ button { background: none; border: 0; padding: 0; cursor: pointer; touch-action:
 .muted { color: var(--muted); }
 .small { font-size: .85rem; margin: .25rem 0 .75rem; }
 
-main { max-width: 520px; margin: 0 auto; padding: 0 16px 170px; }
+main { max-width: 520px; margin: 0 auto; padding: 0 16px 180px; }
 h1 { font: 600 1.25rem var(--font-num); margin: 0; }
 h2 {
   font-size: var(--label-size); font-weight: 600; margin: 0; color: var(--muted);
@@ -106,20 +106,52 @@ textarea::placeholder, input::placeholder { color: var(--muted); }
 .link { color: var(--muted); text-decoration: underline; text-underline-offset: 3px; font-size: .9rem; padding: 10px 4px; }
 .danger { color: var(--bad); display: block; margin: 4px auto 0; }
 
-/* ---------- bottom bar ---------- */
-.bottom {
+/* ---------- navigation bar & save button (Material 3 style) ---------- */
+.tabs {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 5;
-  padding: 10px 16px calc(8px + env(safe-area-inset-bottom));
-  background: linear-gradient(to top, var(--bg) 78%, transparent);
+  background: #211c2a; padding-bottom: env(safe-area-inset-bottom);
+  box-shadow: 0 -1px 0 rgba(255, 255, 255, .04);
 }
-.bottom > * { max-width: 488px; margin-inline: auto; }
-.tabs { display: flex; margin-top: 8px; }
+.tabs-in { display: flex; max-width: 520px; margin: 0 auto; height: 76px; padding: 0 8px; }
 .tabs button {
-  flex: 1; min-height: 46px; color: var(--muted); font-weight: 600;
-  text-transform: var(--label-case); letter-spacing: var(--label-space);
-  border-top: 2px solid transparent;
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  color: var(--muted); font-size: .78rem; font-weight: 600; letter-spacing: .01em;
 }
-.tabs button.on { color: var(--text); border-top-color: var(--accent); }
+.tabs .pill {
+  display: grid; place-items: center; width: 64px; height: 32px; border-radius: 16px;
+  font-size: 1.2rem; transition: background-color .2s;
+}
+.tabs button:active .pill, .tabs button:hover .pill { background: var(--surface2); }
+.tabs button.on { color: var(--text); }
+.tabs button.on .pill { background: #43365f; color: #e3d6ff; }
+.pill-in { animation: pill-in .35s cubic-bezier(.3, 1.5, .5, 1); }
+@keyframes pill-in { from { transform: scaleX(.45); opacity: .4; } }
+
+.fab {
+  position: fixed; z-index: 6; right: max(16px, calc(50% - 244px));
+  bottom: calc(76px + 16px + env(safe-area-inset-bottom));
+  display: inline-flex; align-items: center; gap: 10px; height: 56px; padding: 0 22px 0 18px;
+  border-radius: 18px; background: var(--accent-grad); color: var(--accent-ink);
+  font-weight: 700; font-size: 1rem;
+  box-shadow: 0 10px 28px -8px rgba(0, 0, 0, .7), 0 6px 20px -8px rgba(170, 150, 225, .6);
+  transition: transform .16s cubic-bezier(.3, 1.4, .5, 1), background-color .2s, color .2s, border-radius .25s, box-shadow .25s;
+}
+.fab:not(:disabled):hover { box-shadow: 0 12px 30px -8px rgba(0, 0, 0, .7), 0 8px 26px -6px rgba(170, 150, 225, .8); }
+.fab:not(:disabled):active { transform: scale(.94); border-radius: 26px; }
+.fab:disabled { background: #2f2839; color: var(--muted); box-shadow: 0 8px 20px -10px rgba(0, 0, 0, .7); }
+
+/* Desktop: the bar becomes a navigation rail on the left, Save sits at the foot of the column. */
+@media (min-width: 840px) {
+  .tabs { right: auto; top: 0; width: 96px; padding: 0; box-shadow: 1px 0 0 rgba(255, 255, 255, .04); }
+  .tabs-in { flex-direction: column; justify-content: center; gap: 20px; height: 100%; padding: 0; }
+  .tabs button { flex: none; padding: 6px 0; }
+  .fab { bottom: 28px; }
+  main { padding-bottom: 110px; }
+  /* room beside the column: move Save out of the content */
+  @media (min-width: 960px) { .fab { right: auto; left: calc(50% + 284px); } main { padding-bottom: 40px; } }
+  .sheet { inset: 0; margin: auto; height: fit-content; border-radius: var(--radius); border: 1px solid var(--line); }
+  .sheet[open] { animation-name: fade-in; }
+}
 
 /* ---------- auth ---------- */
 .auth { padding-top: 12vh; }
@@ -161,7 +193,6 @@ textarea::placeholder, input::placeholder { color: var(--muted); }
 .imp-v { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 
 /* ---------- overflow menu & settings sheets ---------- */
-.tabs .dots { flex: 0 0 56px; font-size: 1.5rem; line-height: 1; }
 .sheet {
   position: fixed; inset: auto 0 0 0; width: 100%; max-width: 520px; margin: 0 auto;
   padding: 20px 16px calc(16px + env(safe-area-inset-bottom));
@@ -176,3 +207,69 @@ textarea::placeholder, input::placeholder { color: var(--muted); }
 }
 .item:active { background: var(--line); }
 .secret { display: block; word-break: break-all; font-size: .8rem; background: var(--bg); padding: 12px; border-radius: 12px; user-select: all; -webkit-user-select: all; min-height: 3.2em; }
+
+/* ---------- icons ---------- */
+.ic { width: 1.25em; height: 1.25em; flex: none; fill: currentColor; }
+.chip { display: inline-flex; align-items: center; gap: 8px; padding-left: 13px; }
+.chip .ic { color: var(--accent2); transition: color .15s, transform .25s cubic-bezier(.3, 1.6, .5, 1); }
+.chip.on .ic { color: inherit; transform: rotate(-8deg) scale(1.1); }
+.imp-l { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.imp-l .ic { color: var(--muted); }
+#qualityWord { font-weight: 400; }
+
+/* ---------- motion ---------- */
+.chip, .step, .primary, .item, .icon, .seg button {
+  transition: transform .14s cubic-bezier(.3, 1.4, .5, 1), background-color .18s, color .18s, box-shadow .25s;
+}
+.chip:active, .item:active, .primary:not(:disabled):active { transform: scale(.95); }
+.step:active, .icon:active { transform: scale(.86); }
+.chip.on { box-shadow: 0 4px 16px -6px rgba(207, 147, 176, .55); }
+.primary:not(:disabled) { box-shadow: 0 8px 24px -10px rgba(170, 150, 225, .7); }
+
+input[type=range]::-webkit-slider-thumb { transition: transform .15s cubic-bezier(.3, 1.6, .5, 1), box-shadow .15s; }
+input[type=range]:active::-webkit-slider-thumb { transform: scale(1.22); box-shadow: 0 0 0 8px rgba(169, 152, 222, .18); }
+input[type=range]::-moz-range-thumb { transition: transform .15s; }
+input[type=range]:active::-moz-range-thumb { transform: scale(1.22); }
+
+.big { display: inline-block; transform-origin: 100% 60%; }
+.counter .big { transform-origin: 50% 60%; }
+.bump { animation: bump .28s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.14); } 100% { transform: scale(1); } }
+
+.pop { animation: pop .34s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes pop { 0% { transform: scale(.9); } 55% { transform: scale(1.07); } 100% { transform: scale(1); } }
+
+.nope, .shake { animation: shake .3s; }
+@keyframes shake { 20% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 80% { transform: translateX(-3px); } }
+
+.done { animation: done .7s cubic-bezier(.2, .9, .3, 1); }
+@keyframes done {
+  0% { transform: scale(.92); box-shadow: 0 0 0 0 rgba(207, 147, 176, .55); background: var(--accent-grad); color: var(--accent-ink); }
+  45% { transform: scale(1.06); background: var(--accent-grad); color: var(--accent-ink); }
+  100% { transform: scale(1); box-shadow: 0 0 0 22px rgba(207, 147, 176, 0); }
+}
+
+.fade-in { animation: fade-in .28s ease-out; }
+.from-right { animation: from-right .26s cubic-bezier(.2, .8, .3, 1); }
+.from-left { animation: from-left .26s cubic-bezier(.2, .8, .3, 1); }
+@keyframes fade-in { from { opacity: 0; transform: translateY(6px); } }
+@keyframes from-right { from { opacity: 0; transform: translateX(22px); } }
+@keyframes from-left { from { opacity: 0; transform: translateX(-22px); } }
+
+.sheet[open] { animation: sheet-up .3s cubic-bezier(.2, .9, .3, 1); }
+.sheet[open]::backdrop { animation: backdrop .3s ease-out; }
+@keyframes sheet-up { from { transform: translateY(100%); } }
+@keyframes backdrop { from { opacity: 0; } }
+
+svg.animate .bar { transform-box: fill-box; transform-origin: 50% 100%; animation: grow-y .5s cubic-bezier(.2, .9, .3, 1) backwards; }
+svg.animate .q { animation: backdrop .5s .25s ease-out backwards; }
+.band, .dot { transition: none; }
+@keyframes grow-y { from { transform: scaleY(0); } }
+.imp-bar i { animation: grow-x .45s cubic-bezier(.2, .9, .3, 1) backwards; }
+.imp-bar .pos { transform-origin: 0 50%; }
+.imp-bar .neg { transform-origin: 100% 50%; }
+@keyframes grow-x { from { transform: scaleX(0); } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}

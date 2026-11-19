@@ -14,7 +14,7 @@ env:
   SSH_KEY: ${{ secrets.DEPLOY_KEY }}
   # Non-public folder on the server (no trailing slash); its public/ subfolder is the web root.
   REMOTE_PATH: ${{ secrets.DEPLOY_PATH }}
-  REMOTE_PHP: ${{ vars.DEPLOY_PHP || 'php' }}
+  REMOTE_PHP: ${{ vars.DEPLOY_PHP || 'php84' }}
 
 jobs:
   deploy:

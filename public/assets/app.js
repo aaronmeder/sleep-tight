@@ -3,6 +3,7 @@
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const icon = name => name ? `<svg class="ic" aria-hidden="true"><use href="#i-${name}"/></svg>` : '';
 
 async function api(action, body) {
   const res = await fetch('api.php?a=' + action, body
@@ -14,6 +15,15 @@ async function api(action, body) {
   return json;
 }
 
+// --- small delights ---------------------------------------------------------
+/** Restarts a one-shot CSS animation class on an element. */
+function play(el, cls) {
+  el.classList.remove(cls);
+  void el.offsetWidth;
+  el.classList.add(cls);
+}
+const tick = (ms = 8) => { try { navigator.vibrate && navigator.vibrate(ms); } catch (e) {} };
+
 // --- auth -------------------------------------------------------------------
 const auth = $('#auth');
 if (auth) {
@@ -22,7 +32,10 @@ if (auth) {
     try {
       await api(auth.dataset.mode, { password: $('#pw').value });
       location.reload();
-    } catch (err) { $('#authErr').textContent = err.message; }
+    } catch (err) {
+      $('#authErr').textContent = err.message;
+      play(auth, 'shake');
+    }
   });
   return;
 }
@@ -55,16 +68,37 @@ function blank(date) {
 function open(date) {
   if (dirty && !confirm('Discard unsaved changes?')) return;
   if (date > today()) date = today();
+  const dir = f && date !== f.date ? (date > f.date ? 'from-right' : 'from-left') : null;
   f = entries[date] ? structuredClone(entries[date]) : blank(date);
+  for (const g of GROUPS) f[g] = f[g].filter(slug => slug in TAGS[g]);
   dirty = false;
   renderLog();
+  if (dir) play($('#view-log'), dir);
 }
 
 // --- log view ---------------------------------------------------------------
 const saveBtn = $('#save');
+const WORDS = [[30, 'rough'], [50, 'poor'], [65, 'okay'], [80, 'good'], [92, 'great'], [101, 'dreamy']];
 
 function setFill(input) {
   input.style.setProperty('--p', ((input.value - input.min) / (input.max - input.min)) * 100 + '%');
+}
+
+/** Updates the three numbers in place; `changed` names the one to animate. */
+function renderValues(changed) {
+  $('#hours').value = Math.min(f.hours, 14);
+  $('#quality').value = f.quality;
+  const set = (id, text, key) => {
+    const el = $(id);
+    if (el.textContent === String(text)) return;
+    el.textContent = text;
+    if (changed === key) play(el, 'bump');
+  };
+  set('#hoursOut', fmtHours(f.hours), 'hours');
+  set('#qualityOut', f.quality + '%', 'quality');
+  set('#breaksOut', f.breaks, 'breaks');
+  $('#qualityWord').textContent = '· ' + WORDS.find(([max]) => f.quality < max)[1];
+  $$('input[type=range]').forEach(setFill);
 }
 
 function renderLog() {
@@ -74,51 +108,53 @@ function renderLog() {
   $('#datePick').value = f.date;
   $('#datePick').max = t;
   $('#next').disabled = f.date >= t;
-
-  $('#hours').value = Math.min(f.hours, 14);
-  $('#quality').value = f.quality;
-  $('#hoursOut').textContent = fmtHours(f.hours);
-  $('#qualityOut').textContent = f.quality + '%';
-  $('#breaksOut').textContent = f.breaks;
-  $$('input[type=range]').forEach(setFill);
-
+  renderValues();
   for (const g of GROUPS) {
     $(`.chips[data-group=${g}]`).innerHTML = Object.entries(TAGS[g]).map(([slug, label]) =>
-      `<button type="button" class="chip${f[g].includes(slug) ? ' on' : ''}" data-tag="${slug}" aria-pressed="${f[g].includes(slug)}">${esc(label)}</button>`).join('');
+      `<button type="button" class="chip${f[g].includes(slug) ? ' on' : ''}" data-tag="${slug}" aria-pressed="${f[g].includes(slug)}">${icon((ICONS[g] || {})[slug])}${esc(label)}</button>`).join('');
   }
-  if ($('#note').value !== f.note) $('#note').value = f.note;
+  $('#note').value = f.note;
   $('#del').hidden = !entries[f.date];
   renderSave();
 }
 
 function renderSave(flash) {
   const exists = !!entries[f.date];
-  saveBtn.textContent = flash || (exists ? (dirty ? 'Update' : 'Saved') : 'Save');
+  $('#saveLabel').textContent = flash || (exists ? (dirty ? 'Update' : 'Saved') : 'Save');
   saveBtn.disabled = exists && !dirty;
 }
 
-function touch() { dirty = true; renderLog(); }
+function touch() { dirty = true; renderSave(); }
 
 const LIMITS = { hours: [0, 24], quality: [1, 100], breaks: [0, 30] };
 document.addEventListener('click', e => {
   const step = e.target.closest('[data-step]');
   if (step) {
     const k = step.dataset.step, [lo, hi] = LIMITS[k];
-    f[k] = Math.max(lo, Math.min(hi, f[k] + Number(step.dataset.d)));
+    const next = Math.max(lo, Math.min(hi, f[k] + Number(step.dataset.d)));
+    if (next === f[k]) return play(step, 'nope');
+    f[k] = next;
+    tick();
+    renderValues(k);
     return touch();
   }
   const chip = e.target.closest('.chip');
   if (chip) {
     const list = f[chip.parentElement.dataset.group], slug = chip.dataset.tag;
-    list.includes(slug) ? list.splice(list.indexOf(slug), 1) : list.push(slug);
+    const on = !list.includes(slug);
+    on ? list.push(slug) : list.splice(list.indexOf(slug), 1);
+    chip.classList.toggle('on', on);
+    chip.setAttribute('aria-pressed', on);
+    if (on) play(chip, 'pop');
+    tick();
     return touch();
   }
 });
 
 for (const k of ['hours', 'quality']) {
-  $('#' + k).addEventListener('input', e => { f[k] = Number(e.target.value); touch(); });
+  $('#' + k).addEventListener('input', e => { f[k] = Number(e.target.value); renderValues(); touch(); });
 }
-$('#note').addEventListener('input', e => { f.note = e.target.value; dirty = true; renderSave(); });
+$('#note').addEventListener('input', e => { f.note = e.target.value; touch(); });
 $('#prev').addEventListener('click', () => open(addDays(f.date, -1)));
 $('#next').addEventListener('click', () => open(addDays(f.date, 1)));
 $('#datePick').addEventListener('change', e => e.target.value && open(e.target.value));
@@ -129,10 +165,13 @@ saveBtn.addEventListener('click', async () => {
     await api('save', f);
     entries[f.date] = structuredClone(f);
     dirty = false;
-    renderLog();
-    renderSave('Saved ✓');
+    $('#del').hidden = false;
+    renderSave('Sleep tight ✓');
+    play(saveBtn, 'done');
+    tick(20);
   } catch (err) {
     renderSave();
+    play(saveBtn, 'shake');
     alert(err.message);
   }
 });
@@ -149,8 +188,8 @@ $('#del').addEventListener('click', async () => {
 
 // --- tabs -------------------------------------------------------------------
 $('.tabs').addEventListener('click', e => {
-  const v = e.target.dataset.view;
-  if (v) show(v);
+  const v = (e.target.closest('[data-view]') || {}).dataset;
+  if (v && v.view !== view) { tick(); show(v.view); }
 });
 
 function show(v) {
@@ -158,8 +197,9 @@ function show(v) {
   $('#view-log').hidden = v !== 'log';
   $('#view-stats').hidden = v !== 'stats';
   saveBtn.hidden = v !== 'log';
-  $$('.tabs button').forEach(b => b.classList.toggle('on', b.dataset.view === v));
+  $$('.tabs [data-view]').forEach(b => { b.classList.toggle('on', b.dataset.view === v); if (b.dataset.view === v) play(b.firstElementChild, 'pill-in'); });
   if (v === 'stats') renderStats();
+  play($('#view-' + v), 'fade-in');
   scrollTo(0, 0);
 }
 
@@ -169,7 +209,7 @@ const within = n => { const from = addDays(today(), -n); return sorted().filter(
 
 function renderStats() {
   renderTiles();
-  renderChart();
+  renderChart(true);
   renderImpact();
 }
 
@@ -188,10 +228,12 @@ $('#range').addEventListener('click', e => {
   if (!e.target.dataset.n) return;
   range = Number(e.target.dataset.n);
   picked = null;
-  renderChart();
+  tick();
+  renderChart(true);
 });
 
-function renderChart() {
+/** @param animate grow the marks in (first paint / range change), not on every tap */
+function renderChart(animate) {
   $$('#range button').forEach(b => b.classList.toggle('on', Number(b.dataset.n) === range));
   const box = $('#chart');
   const days = Array.from({ length: range }, (_, i) => addDays(today(), i - range + 1));
@@ -213,7 +255,7 @@ function renderChart() {
   const yQ = q => base2 - (q / 100) * H2;
   const bw = Math.max(2, Math.min(18, col - 2));
 
-  let s = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Hours slept and sleep quality for the last ${range} nights">`;
+  let s = `<svg class="${animate ? 'animate' : ''}" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Hours slept and sleep quality for the last ${range} nights">`;
   s += `<defs>
     <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cf93b0"/><stop offset="1" stop-color="#9c93e0"/></linearGradient>
     <linearGradient id="lineGrad" gradientUnits="userSpaceOnUse" x1="${padL}" x2="${W - padR}" y1="0" y2="0"><stop offset="0" stop-color="#9c93e0"/><stop offset="1" stop-color="#cf93b0"/></linearGradient>
@@ -230,7 +272,7 @@ function renderChart() {
   data.forEach((e, i) => {
     if (!e || !e.hours) return;
     const bx = x(i) + (col - bw) / 2, y = yH(e.hours), r = Math.min(4, bw / 2, base1 - y);
-    s += `<path class="bar${i === pi ? ' on' : ''}" d="M${bx},${base1}V${y + r}q0,${-r} ${r},${-r}h${bw - 2 * r}q${r},0 ${r},${r}V${base1}z"/>`;
+    s += `<path class="bar${i === pi ? ' on' : ''}" style="animation-delay:${Math.round(i / range * 280)}ms" d="M${bx},${base1}V${y + r}q0,${-r} ${r},${-r}h${bw - 2 * r}q${r},0 ${r},${r}V${base1}z"/>`;
   });
 
   // quality: line, broken where nights are missing
@@ -240,13 +282,14 @@ function renderChart() {
     d += `${pen ? 'L' : 'M'}${x(i) + col / 2},${yQ(e.quality)}`;
     pen = true;
   });
-  s += `<path class="line" d="${d}"/>`;
+  s += `<g class="q"><path class="line" d="${d}"/>`;
   data.forEach((e, i) => {
     const lonely = e && !data[i - 1] && !data[i + 1];
     if (e && (range <= 30 || lonely || i === pi)) {
       s += `<circle class="dot${i === pi ? ' on' : ''}" cx="${x(i) + col / 2}" cy="${yQ(e.quality)}" r="${i === pi ? 4.5 : 3}"/>`;
     }
   });
+  s += '</g>';
 
   // x labels: first, middle, last
   [0, Math.floor(range / 2), range - 1].forEach((i, n) => {
@@ -263,19 +306,19 @@ function renderChart() {
 
 $('#chart').addEventListener('click', e => {
   const d = e.target.dataset.date;
-  if (d && entries[d]) { picked = d; renderChart(); }
+  if (d && entries[d] && d !== picked) { picked = d; tick(); renderChart(false); play($('#readout'), 'fade-in'); }
 });
 $('#readout').addEventListener('click', e => {
   if (e.target.id === 'editPicked') { dirty = false; open(picked); show('log'); }
 });
-addEventListener('resize', () => view === 'stats' && renderChart());
+addEventListener('resize', () => view === 'stats' && renderChart(false));
 
 function renderImpact() {
   const all = sorted(), MIN = 3, rows = [];
   for (const g of GROUPS) for (const [slug, label] of Object.entries(TAGS[g])) {
     const yes = all.filter(e => e[g].includes(slug)), no = all.filter(e => !e[g].includes(slug));
     if (yes.length < MIN || no.length < MIN) continue;
-    rows.push({ label, group: g, n: yes.length, delta: avg(yes, 'quality') - avg(no, 'quality') });
+    rows.push({ label, group: g, slug, n: yes.length, delta: avg(yes, 'quality') - avg(no, 'quality') });
   }
   if (!rows.length) {
     $('#impact').innerHTML = `<p class="muted small">Shows up once a tag has at least ${MIN} nights with it and ${MIN} without.</p>`;
@@ -283,27 +326,27 @@ function renderImpact() {
   }
   rows.sort((a, b) => b.delta - a.delta);
   const max = Math.max(10, ...rows.map(r => Math.abs(r.delta)));
-  const names = { clothing: 'clothing', day: 'day', evening: 'evening', specifics: '' };
-  $('#impact').innerHTML = rows.map(r => {
+  const names = { clothing: '', day: 'day', evening: 'evening', specifics: '' };
+  $('#impact').innerHTML = rows.map((r, i) => {
     const w = Math.abs(r.delta) / max * 50, pos = r.delta >= 0, v = Math.round(r.delta);
     return `<div class="imp">
-      <span class="imp-l">${esc(r.label)}${names[r.group] ? ` <small>${names[r.group]}</small>` : ''}</span>
-      <span class="imp-bar"><i class="${pos ? 'pos' : 'neg'}" style="width:${w}%;${pos ? 'left:50%' : 'right:50%'}"></i></span>
+      <span class="imp-l">${icon((ICONS[r.group] || {})[r.slug])}<span>${esc(r.label)}${names[r.group] ? ` <small>${names[r.group]}</small>` : ''}</span></span>
+      <span class="imp-bar"><i class="${pos ? 'pos' : 'neg'}" style="width:${w}%;${pos ? 'left:50%' : 'right:50%'};animation-delay:${i * 25}ms"></i></span>
       <span class="imp-v">${v > 0 ? '+' : v < 0 ? '−' : ''}${Math.abs(v)} <small>${r.n}×</small></span>
     </div>`;
   }).join('');
 }
 
-// --- misc -------------------------------------------------------------------
+// --- menu & settings --------------------------------------------------------
 const menu = $('#menu'), settings = $('#settings');
-$('#openMenu').addEventListener('click', () => menu.showModal());
+$('#openMenu').addEventListener('click', () => { tick(); menu.showModal(); });
 $('#openSettings').addEventListener('click', async () => {
   menu.close();
   settings.showModal();
   try { $('#token').textContent = (await api('token')).token; } catch (err) { $('#token').textContent = err.message; }
 });
 $('#copyToken').addEventListener('click', async e => {
-  try { await navigator.clipboard.writeText($('#token').textContent); e.target.textContent = 'Copied ✓'; }
+  try { await navigator.clipboard.writeText($('#token').textContent); e.target.textContent = 'Copied ✓'; tick(20); }
   catch (err) { e.target.textContent = 'Select the token and copy it'; }
   setTimeout(() => { e.target.textContent = 'Copy token'; }, 2000);
 });
@@ -317,5 +360,6 @@ addEventListener('beforeunload', e => { if (dirty) e.preventDefault(); });
 api('list').then(r => {
   for (const e of r.entries) entries[e.date] = e;
   open(today());
+  play($('#view-log'), 'fade-in');
 }).catch(err => alert(err.message));
 })();

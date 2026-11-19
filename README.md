@@ -41,3 +41,5 @@ one by one, the most recently edited version wins, deletes are carried over. A l
 every push to `main`, then runs `bin/migrate` there. `data/` is never touched.
 Secrets: `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_KEY`, `DEPLOY_PATH`, optional `DEPLOY_PORT` (default 22).
 Live: https://sleep.telltec.ch
+
+Icons: [Phosphor](https://phosphoricons.com) (MIT), copied into `public/assets/icons/`; chip icons are mapped in `ICONS` in `lib/app.php`.

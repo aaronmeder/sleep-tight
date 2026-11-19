@@ -23,6 +23,7 @@ header('Cache-Control: no-store');
 <link rel="stylesheet" href="<?= $v('assets/app.css') ?>">
 </head>
 <body>
+<?= icon_sprite() ?>
 
 <?php if (!$authed): ?>
 <main class="auth">
@@ -61,7 +62,7 @@ header('Cache-Control: no-store');
 
   <section class="card">
     <div class="row">
-      <h2>Quality</h2>
+      <h2>Quality <span id="qualityWord"></span></h2>
       <output class="big" id="qualityOut"></output>
     </div>
     <div class="slide">
@@ -120,14 +121,15 @@ header('Cache-Control: no-store');
   </section>
 </main>
 
-<div class="bottom">
-  <button id="save" class="primary">Save</button>
-  <nav class="tabs">
-    <button data-view="log" class="on">Log</button>
-    <button data-view="stats">Stats</button>
-    <button id="openMenu" class="dots" aria-label="More" aria-haspopup="dialog">⋯</button>
-  </nav>
-</div>
+<button id="save" class="fab"><svg class="ic"><use href="#i-check"/></svg><span id="saveLabel">Save</span></button>
+
+<nav class="tabs" aria-label="Main">
+  <div class="tabs-in">
+    <button data-view="log" class="on"><span class="pill"><svg class="ic"><use href="#i-bed"/></svg></span>Log</button>
+    <button data-view="stats"><span class="pill"><svg class="ic"><use href="#i-chart-bar"/></svg></span>Stats</button>
+    <button id="openMenu" aria-haspopup="dialog"><span class="pill"><svg class="ic"><use href="#i-dots-three"/></svg></span>More</button>
+  </div>
+</nav>
 
 <dialog id="menu" class="sheet" aria-label="More">
   <a class="item" href="api.php?a=export">Export CSV</a>
@@ -145,7 +147,7 @@ header('Cache-Control: no-store');
 </dialog>
 <?php endif ?>
 
-<script>window.TAGS = <?= json_encode(TAGS) ?>;</script>
+<script>window.TAGS = <?= json_encode(TAGS) ?>; window.ICONS = <?= json_encode(ICONS) ?>;</script>
 <script src="<?= $v('assets/app.js') ?>"></script>
 </body>
 </html>
