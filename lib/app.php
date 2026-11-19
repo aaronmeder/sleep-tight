@@ -28,7 +28,7 @@ const ICONS = [
     'clothing' => ['tshirt' => 't-shirt', 'naked' => 'custom-penis'],
     'day' => ['sports' => 'bicycle', 'stress' => 'lightning', 'outdoors' => 'tree', 'nap' => 'bed', 'caffeine' => 'coffee'],
     'evening' => [
-        'alcohol' => 'wine', 'ate_a_lot' => 'custom-pig', 'screen' => 'device-mobile', 'reading' => 'book-open',
+        'alcohol' => 'wine', 'ate_a_lot' => 'custom-belly', 'screen' => 'device-mobile', 'reading' => 'book-open',
         'sports' => 'bicycle', 'late' => 'moon-stars', 'spirituality' => 'hands-praying', 'spouse' => 'heart', 'friends' => 'users-three',
     ],
     'specifics' => ['woke_early' => 'sun-horizon', 'awake_night' => 'eye', 'no_sleep' => 'hourglass'],
