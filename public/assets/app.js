@@ -14,21 +14,6 @@ async function api(action, body) {
   return json;
 }
 
-// --- TEMP: design direction picker -----------------------------------------
-const themeBar = $('#themes');
-if (themeBar) {
-  const mark = () => $$('button', themeBar).forEach(b => b.classList.toggle('on', b.dataset.t === document.documentElement.dataset.theme));
-  themeBar.addEventListener('click', e => {
-    const t = e.target.dataset.t;
-    if (!t) return;
-    document.documentElement.dataset.theme = t;
-    try { localStorage.theme = t; } catch (e) {}
-    mark();
-    if (!auth && view === 'stats') renderStats();
-  });
-  mark();
-}
-
 // --- auth -------------------------------------------------------------------
 const auth = $('#auth');
 if (auth) {
@@ -229,6 +214,10 @@ function renderChart() {
   const bw = Math.max(2, Math.min(18, col - 2));
 
   let s = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Hours slept and sleep quality for the last ${range} nights">`;
+  s += `<defs>
+    <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cf93b0"/><stop offset="1" stop-color="#9c93e0"/></linearGradient>
+    <linearGradient id="lineGrad" gradientUnits="userSpaceOnUse" x1="${padL}" x2="${W - padR}" y1="0" y2="0"><stop offset="0" stop-color="#9c93e0"/><stop offset="1" stop-color="#cf93b0"/></linearGradient>
+  </defs>`;
   const grid = (y, label) => `<line class="grid" x1="${padL}" x2="${W - padR}" y1="${y}" y2="${y}"/><text class="axis" x="${padL - 6}" y="${y + 3.5}" text-anchor="end">${label}</text>`;
   s += grid(yH(8), '8h') + grid(yH(4), '4h') + grid(base1, '0');
   s += grid(yQ(100), '100') + grid(yQ(50), '50') + grid(base2, '0');
@@ -306,11 +295,22 @@ function renderImpact() {
 }
 
 // --- misc -------------------------------------------------------------------
-$('#showToken').addEventListener('click', async () => {
-  const el = $('#token');
-  if (!el.hidden) { el.hidden = true; return; }
-  try { el.textContent = (await api('token')).token; el.hidden = false; } catch (err) { alert(err.message); }
+const menu = $('#menu'), settings = $('#settings');
+$('#openMenu').addEventListener('click', () => menu.showModal());
+$('#openSettings').addEventListener('click', async () => {
+  menu.close();
+  settings.showModal();
+  try { $('#token').textContent = (await api('token')).token; } catch (err) { $('#token').textContent = err.message; }
 });
+$('#copyToken').addEventListener('click', async e => {
+  try { await navigator.clipboard.writeText($('#token').textContent); e.target.textContent = 'Copied ✓'; }
+  catch (err) { e.target.textContent = 'Select the token and copy it'; }
+  setTimeout(() => { e.target.textContent = 'Copy token'; }, 2000);
+});
+for (const d of [menu, settings]) {
+  // close on backdrop tap, on [data-close], and after picking a link
+  d.addEventListener('click', e => { if (e.target === d || e.target.closest('[data-close], a')) d.close(); });
+}
 $('#logout').addEventListener('click', async () => { await api('logout', {}); location.reload(); });
 addEventListener('beforeunload', e => { if (dirty) e.preventDefault(); });
 

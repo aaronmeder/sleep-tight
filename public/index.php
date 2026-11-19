@@ -8,12 +8,12 @@ $v = fn(string $f) => $f . '?v=' . filemtime(__DIR__ . '/' . $f);
 header('Cache-Control: no-store');
 ?>
 <!doctype html>
-<html lang="en" data-theme="dusk">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
-<meta name="theme-color" content="#1a1614">
+<meta name="theme-color" content="#14111a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Sleep Tight</title>
@@ -21,16 +21,8 @@ header('Cache-Control: no-store');
 <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="assets/icon-180.png">
 <link rel="stylesheet" href="<?= $v('assets/app.css') ?>">
-<script>try { document.documentElement.dataset.theme = localStorage.theme || 'dusk' } catch (e) {}</script>
 </head>
 <body>
-
-<!-- TEMP: design direction picker, removed once a direction is chosen -->
-<div class="themes" id="themes">
-  <button data-t="dusk">A · Dusk</button>
-  <button data-t="nocturne">B · Nocturne</button>
-  <button data-t="graphite">C · Graphite</button>
-</div>
 
 <?php if (!$authed): ?>
 <main class="auth">
@@ -126,13 +118,6 @@ header('Cache-Control: no-store');
     <p class="muted small">Average quality on nights with a tag vs. nights without it, in points.</p>
     <div id="impact"></div>
   </section>
-
-  <section class="card more">
-    <a class="link" href="api.php?a=export">Export CSV</a>
-    <button class="link" id="showToken">Sync token</button>
-    <button class="link" id="logout">Log out</button>
-    <code id="token" hidden></code>
-  </section>
 </main>
 
 <div class="bottom">
@@ -140,8 +125,24 @@ header('Cache-Control: no-store');
   <nav class="tabs">
     <button data-view="log" class="on">Log</button>
     <button data-view="stats">Stats</button>
+    <button id="openMenu" class="dots" aria-label="More" aria-haspopup="dialog">⋯</button>
   </nav>
 </div>
+
+<dialog id="menu" class="sheet" aria-label="More">
+  <a class="item" href="api.php?a=export">Export CSV</a>
+  <button class="item" id="openSettings">Settings</button>
+  <button class="item" id="logout">Log out</button>
+</dialog>
+
+<dialog id="settings" class="sheet" aria-labelledby="settingsTitle">
+  <h1 id="settingsTitle">Settings</h1>
+  <h2>Sync token</h2>
+  <p class="muted small">Lets <code>bin/sync</code> and <code>bin/migrate --remote</code> reach this site. Keep it private.</p>
+  <code id="token" class="secret"></code>
+  <button class="item" id="copyToken">Copy token</button>
+  <button class="item" data-close>Close</button>
+</dialog>
 <?php endif ?>
 
 <script>window.TAGS = <?= json_encode(TAGS) ?>;</script>
