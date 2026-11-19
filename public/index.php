@@ -41,7 +41,7 @@ header('Cache-Control: no-store');
 </main>
 <?php else: ?>
 
-<main id="view-log">
+<main id="view-log" hidden>
   <header class="datebar">
     <button id="prev" class="icon" aria-label="Previous night">‹</button>
     <label class="datebtn">
@@ -106,7 +106,7 @@ header('Cache-Control: no-store');
   <button id="del" class="link danger" hidden>Delete this night</button>
 </main>
 
-<main id="view-stats" hidden>
+<main id="view-stats">
   <header class="datebar"><h1>Stats</h1></header>
 
   <section class="tiles" id="tiles"></section>
@@ -134,12 +134,12 @@ header('Cache-Control: no-store');
   </section>
 </main>
 
-<button id="save" class="fab"><svg class="ic"><use href="#i-floppy-disk"/></svg><span id="saveLabel">Save</span></button>
+<button id="save" class="fab" hidden><svg class="ic"><use href="#i-floppy-disk"/></svg><span id="saveLabel">Save</span></button>
 
 <nav class="tabs" aria-label="Main">
   <div class="tabs-in">
-    <button data-view="log" class="on"><span class="pill"><svg class="ic"><use href="#i-bed"/></svg></span>Log</button>
-    <button data-view="stats"><span class="pill"><svg class="ic"><use href="#i-chart-bar"/></svg></span>Stats</button>
+    <button data-view="log"><span class="pill"><svg class="ic"><use href="#i-bed"/></svg></span>Log</button>
+    <button data-view="stats" class="on"><span class="pill"><svg class="ic"><use href="#i-chart-bar"/></svg></span>Stats</button>
     <button id="openMenu" aria-haspopup="dialog"><span class="pill"><svg class="ic"><use href="#i-dots-three"/></svg></span>More</button>
   </div>
 </nav>

@@ -53,7 +53,7 @@ const GROUPS = Object.keys(TAGS);
 let entries = {};          // date -> entry
 let f = null;              // form state for the current date
 let dirty = false;
-let view = 'log';
+let view = 'stats';
 let range = 14;
 let picked = null;         // date selected in the chart
 
@@ -438,6 +438,6 @@ addEventListener('beforeunload', e => { if (dirty) e.preventDefault(); });
 api('list').then(r => {
   for (const e of r.entries) entries[e.date] = e;
   open(today());
-  play($('#view-log'), 'fade-in');
+  show(view);
 }).catch(err => alert(err.message));
 })();
