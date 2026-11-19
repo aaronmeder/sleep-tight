@@ -16,7 +16,7 @@ const TAGS = [
     ],
     'evening' => [
         'alcohol' => 'Alcohol', 'ate_a_lot' => 'Ate a lot', 'screen' => 'Screen', 'reading' => 'Reading',
-        'sports' => 'Sports', 'late' => 'Late to bed', 'spirituality' => 'Spirituality', 'spouse' => 'Spouse', 'friends' => 'Friends',
+        'sports' => 'Sports', 'late' => 'Late to bed', 'spirituality' => 'Spirituality', 'spouse' => 'Spouse', 'friends' => 'Friends', 'sex' => 'Sex',
     ],
     'specifics' => [
         'woke_early' => 'Woke very early', 'awake_night' => 'Awake during the night', 'no_sleep' => "Couldn't get to sleep",
@@ -40,7 +40,7 @@ const ICONS = [
     'day' => ['sports' => 'bicycle', 'stress' => 'lightning', 'outdoors' => 'tree', 'nap' => 'bed', 'caffeine' => 'coffee'],
     'evening' => [
         'alcohol' => 'wine', 'ate_a_lot' => 'fork-knife', 'screen' => 'device-mobile', 'reading' => 'book-open',
-        'sports' => 'bicycle', 'late' => 'moon-stars', 'spirituality' => 'hands-praying', 'spouse' => 'heart', 'friends' => 'users-three',
+        'sports' => 'bicycle', 'late' => 'moon-stars', 'spirituality' => 'hands-praying', 'spouse' => 'heart', 'friends' => 'users-three', 'sex' => 'fire',
     ],
     'specifics' => ['woke_early' => 'sun-horizon', 'awake_night' => 'eye', 'no_sleep' => 'hourglass'],
     'concerns' => [

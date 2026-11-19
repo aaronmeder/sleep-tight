@@ -83,6 +83,14 @@ const WORDS = [[30, 'rough'], [50, 'poor'], [65, 'okay'], [80, 'good'], [92, 'gr
 // "Main concerns" is only asked after a rough night. Mirrors concerns_apply() in lib/app.php.
 const concernsApply = () => f.hours < 5 || f.breaks > 1;
 
+/** Firefox has no `field-sizing: content` yet, so grow the note by hand there. */
+function growNote() {
+  if (CSS.supports('field-sizing', 'content')) return;
+  const el = $('#note');
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
+}
+
 function setFill(input) {
   input.style.setProperty('--p', ((input.value - input.min) / (input.max - input.min)) * 100 + '%');
 }
@@ -122,6 +130,7 @@ function renderLog() {
       `<button type="button" class="chip${f[g].includes(slug) ? ' on' : ''}" data-tag="${slug}" aria-pressed="${f[g].includes(slug)}">${icon((ICONS[g] || {})[slug])}${esc(label)}</button>`).join('');
   }
   $('#note').value = f.note;
+  growNote();
   $('#del').hidden = !entries[f.date];
   renderSave();
 }
@@ -162,7 +171,7 @@ document.addEventListener('click', e => {
 for (const k of ['hours', 'quality']) {
   $('#' + k).addEventListener('input', e => { f[k] = Number(e.target.value); renderValues('slide'); touch(); });
 }
-$('#note').addEventListener('input', e => { f.note = e.target.value; touch(); });
+$('#note').addEventListener('input', e => { f.note = e.target.value; growNote(); touch(); });
 $('#prev').addEventListener('click', () => open(addDays(f.date, -1)));
 $('#next').addEventListener('click', () => open(addDays(f.date, 1)));
 $('#datePick').addEventListener('change', e => e.target.value && open(e.target.value));
