@@ -23,13 +23,13 @@ const TAGS = [
     ],
 ];
 
-/** Chip icons: group => slug => Phosphor icon name (public/assets/icons/<name>.svg). */
+/** Chip icons: group => slug => icon file in public/assets/icons/ (Phosphor names; custom-* are hand-drawn). */
 const ICONS = [
-    'clothing' => ['tshirt' => 't-shirt', 'naked' => 'person-arms-spread'],
-    'day' => ['sports' => 'person-simple-run', 'stress' => 'lightning', 'outdoors' => 'tree', 'nap' => 'bed', 'caffeine' => 'coffee'],
+    'clothing' => ['tshirt' => 't-shirt', 'naked' => 'custom-penis'],
+    'day' => ['sports' => 'bicycle', 'stress' => 'lightning', 'outdoors' => 'tree', 'nap' => 'bed', 'caffeine' => 'coffee'],
     'evening' => [
-        'alcohol' => 'wine', 'ate_a_lot' => 'fork-knife', 'screen' => 'device-mobile', 'reading' => 'book-open',
-        'sports' => 'barbell', 'late' => 'moon-stars', 'spirituality' => 'hands-praying', 'spouse' => 'heart', 'friends' => 'users-three',
+        'alcohol' => 'wine', 'ate_a_lot' => 'custom-pig', 'screen' => 'device-mobile', 'reading' => 'book-open',
+        'sports' => 'bicycle', 'late' => 'moon-stars', 'spirituality' => 'hands-praying', 'spouse' => 'heart', 'friends' => 'users-three',
     ],
     'specifics' => ['woke_early' => 'sun-horizon', 'awake_night' => 'eye', 'no_sleep' => 'hourglass'],
 ];

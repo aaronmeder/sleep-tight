@@ -140,15 +140,9 @@ textarea::placeholder, input::placeholder { color: var(--muted); }
 .fab:not(:disabled):active { transform: scale(.94); border-radius: 26px; }
 .fab:disabled { background: #2f2839; color: var(--muted); box-shadow: 0 8px 20px -10px rgba(0, 0, 0, .7); }
 
-/* Desktop: the bar becomes a navigation rail on the left, Save sits at the foot of the column. */
+/* Desktop: same bottom bar; the sheets become centred dialogs. */
 @media (min-width: 840px) {
-  .tabs { right: auto; top: 0; width: 96px; padding: 0; box-shadow: 1px 0 0 rgba(255, 255, 255, .04); }
-  .tabs-in { flex-direction: column; justify-content: center; gap: 20px; height: 100%; padding: 0; }
-  .tabs button { flex: none; padding: 6px 0; }
-  .fab { bottom: 28px; }
-  main { padding-bottom: 110px; }
-  /* room beside the column: move Save out of the content */
-  @media (min-width: 960px) { .fab { right: auto; left: calc(50% + 284px); } main { padding-bottom: 40px; } }
+  .tabs button { cursor: pointer; }
   .sheet { inset: 0; margin: auto; height: fit-content; border-radius: var(--radius); border: 1px solid var(--line); }
   .sheet[open] { animation-name: fade-in; }
 }
