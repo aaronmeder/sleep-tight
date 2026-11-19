@@ -125,7 +125,7 @@ header('Cache-Control: no-store');
   </section>
 </main>
 
-<button id="save" class="fab"><svg class="ic"><use href="#i-check"/></svg><span id="saveLabel">Save</span></button>
+<button id="save" class="fab"><svg class="ic"><use href="#i-floppy-disk"/></svg><span id="saveLabel">Save</span></button>
 
 <nav class="tabs" aria-label="Main">
   <div class="tabs-in">
