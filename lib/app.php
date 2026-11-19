@@ -40,7 +40,7 @@ const ICONS = [
     'day' => ['sports' => 'bicycle', 'stress' => 'lightning', 'outdoors' => 'tree', 'nap' => 'bed', 'caffeine' => 'coffee'],
     'evening' => [
         'alcohol' => 'wine', 'ate_a_lot' => 'fork-knife', 'screen' => 'device-mobile', 'reading' => 'book-open',
-        'sports' => 'bicycle', 'late' => 'moon-stars', 'spirituality' => 'hands-praying', 'spouse' => 'heart', 'friends' => 'users-three', 'sex' => 'fire',
+        'sports' => 'bicycle', 'late' => 'moon-stars', 'spirituality' => 'hands-praying', 'spouse' => 'heart', 'friends' => 'users-three', 'sex' => 'custom-sex',
     ],
     'specifics' => ['woke_early' => 'sun-horizon', 'awake_night' => 'eye', 'no_sleep' => 'hourglass'],
     'concerns' => [
