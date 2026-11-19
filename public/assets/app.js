@@ -218,6 +218,7 @@ const within = n => { const from = addDays(today(), -n); return sorted().filter(
 
 function renderStats() {
   renderTiles();
+  renderDays();
   renderChart(true);
   renderImpact();
 }
@@ -232,6 +233,23 @@ function renderTiles() {
     tile('Quality · 7d', q(w), `30d ${q(m)}`) +
     tile('Nights', Object.keys(entries).length, `${w.length}/7 this week`);
 }
+
+/** One square per day for the last two weeks: filled when logged, tap to open that night. */
+function renderDays() {
+  const t = today();
+  $('#days').innerHTML = Array.from({ length: 14 }, (_, i) => addDays(t, i - 13)).map(d => {
+    const on = !!entries[d];
+    return `<button class="day${on ? ' on' : ''}${d === t ? ' today' : ''}" data-date="${d}" aria-label="${fmt(d, { weekday: 'long', day: 'numeric', month: 'long' })}, ${on ? 'logged' : 'not logged'}">
+      <small>${fmt(d, { weekday: 'narrow' })}</small><i>${parse(d).getDate()}</i></button>`;
+  }).join('');
+}
+$('#days').addEventListener('click', e => {
+  const day = e.target.closest('.day');
+  if (!day) return;
+  tick();
+  open(day.dataset.date);
+  if (f.date === day.dataset.date) show('log');
+});
 
 $('#range').addEventListener('click', e => {
   if (!e.target.dataset.n) return;
@@ -318,7 +336,7 @@ $('#chart').addEventListener('click', e => {
   if (d && entries[d] && d !== picked) { picked = d; tick(); renderChart(false); play($('#readout'), 'fade-in'); }
 });
 $('#readout').addEventListener('click', e => {
-  if (e.target.id === 'editPicked') { dirty = false; open(picked); show('log'); }
+  if (e.target.id === 'editPicked') { open(picked); if (f.date === picked) show('log'); }
 });
 addEventListener('resize', () => view === 'stats' && renderChart(false));
 
