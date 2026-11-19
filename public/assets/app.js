@@ -234,21 +234,63 @@ function renderTiles() {
     tile('Nights', Object.keys(entries).length, `${w.length}/7 this week`);
 }
 
-/** One square per day for the last two weeks: filled when logged, tap to open that night. */
+// Last 7 days as squares (filled when logged); the calendar button expands a full month below.
+let calOpen = false;
+let calMonth = null;       // first day of the month shown, YYYY-MM-01
+
+function dayButton(d, weekday) {
+  const t = today(), on = !!entries[d];
+  return `<button class="day${on ? ' on' : ''}${d === t ? ' today' : ''}" data-date="${d}"${d > t ? ' disabled' : ''} aria-label="${fmt(d, { weekday: 'long', day: 'numeric', month: 'long' })}, ${on ? 'logged' : 'not logged'}">
+    ${weekday ? `<small>${fmt(d, { weekday: 'narrow' })}</small>` : ''}<i>${parse(d).getDate()}</i></button>`;
+}
+
 function renderDays() {
   const t = today();
-  $('#days').innerHTML = Array.from({ length: 14 }, (_, i) => addDays(t, i - 13)).map(d => {
-    const on = !!entries[d];
-    return `<button class="day${on ? ' on' : ''}${d === t ? ' today' : ''}" data-date="${d}" aria-label="${fmt(d, { weekday: 'long', day: 'numeric', month: 'long' })}, ${on ? 'logged' : 'not logged'}">
-      <small>${fmt(d, { weekday: 'narrow' })}</small><i>${parse(d).getDate()}</i></button>`;
-  }).join('');
+  $('#days').innerHTML = Array.from({ length: 7 }, (_, i) => dayButton(addDays(t, i - 6), true)).join('') +
+    `<button class="day-more${calOpen ? ' on' : ''}" id="calToggle" aria-expanded="${calOpen}" aria-controls="cal" aria-label="${calOpen ? 'Hide' : 'Show'} calendar">${icon('calendar-blank')}</button>`;
+  renderCal();
 }
-$('#days').addEventListener('click', e => {
+
+function renderCal() {
+  const box = $('#cal');
+  box.hidden = !calOpen;
+  if (!calOpen) return;
+  const thisMonth = today().slice(0, 7) + '-01';
+  const first = parse(calMonth), y = first.getFullYear(), m = first.getMonth();
+  const count = new Date(y, m + 1, 0).getDate(), lead = (first.getDay() + 6) % 7; // weeks start on Monday
+  const dates = Array.from({ length: count }, (_, i) => iso(new Date(y, m, i + 1)));
+  box.innerHTML = `<div class="cal-head">
+      <button class="icon" id="calPrev" aria-label="Previous month">‹</button>
+      <span><b>${first.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}</b> <small>${dates.filter(d => entries[d]).length} logged</small></span>
+      <button class="icon" id="calNext" aria-label="Next month"${calMonth >= thisMonth ? ' disabled' : ''}>›</button>
+    </div>
+    <div class="cal-grid">${['M', 'T', 'W', 'T', 'F', 'S', 'S'].map(d => `<small>${d}</small>`).join('')}${'<span></span>'.repeat(lead)}${dates.map(d => dayButton(d, false)).join('')}</div>`;
+}
+
+$('#daysBox').addEventListener('click', e => {
   const day = e.target.closest('.day');
-  if (!day) return;
-  tick();
-  open(day.dataset.date);
-  if (f.date === day.dataset.date) show('log');
+  if (day) {
+    tick();
+    open(day.dataset.date);
+    if (f.date === day.dataset.date) show('log');
+    return;
+  }
+  if (e.target.closest('#calToggle')) {
+    calOpen = !calOpen;
+    calMonth = today().slice(0, 7) + '-01';
+    tick();
+    renderDays();
+    if (calOpen) play($('#cal'), 'reveal');
+    return;
+  }
+  const nav = e.target.closest('#calPrev, #calNext');
+  if (nav) {
+    const d = parse(calMonth), step = nav.id === 'calPrev' ? -1 : 1;
+    calMonth = iso(new Date(d.getFullYear(), d.getMonth() + step, 1));
+    tick();
+    renderCal();
+    play($('.cal-grid'), step < 0 ? 'from-left' : 'from-right');
+  }
 });
 
 $('#range').addEventListener('click', e => {

@@ -107,7 +107,10 @@ header('Cache-Control: no-store');
 
   <section class="tiles" id="tiles"></section>
 
-  <section class="card days" id="days" aria-label="Last 14 days, tap a day to log or edit it"></section>
+  <section class="card daysbox" id="daysBox" aria-label="Logged days, tap a day to log or edit it">
+    <div class="days" id="days"></div>
+    <div class="cal" id="cal" hidden></div>
+  </section>
 
   <section class="card">
     <div class="row">

@@ -189,19 +189,35 @@ textarea::placeholder, input::placeholder { color: var(--muted); }
 .tile b { font: 600 1.35rem/1.1 var(--font-num); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .tile small { font-size: .72rem; color: var(--muted); white-space: nowrap; }
 
-.days { display: grid; grid-template-columns: repeat(14, 1fr); gap: 4px; padding: 10px 12px 12px; }
-.day { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; transition: transform .14s cubic-bezier(.3, 1.4, .5, 1); }
-.day:active { transform: scale(.85); }
-.day small { font-size: .62rem; color: var(--muted); line-height: 1; }
+.daysbox { padding: 10px 12px 12px; }
+.days { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; align-items: end; }
+.day { display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 0; transition: transform .14s cubic-bezier(.3, 1.4, .5, 1); }
+.day:not(:disabled):active { transform: scale(.85); }
+.day:disabled { opacity: .3; }
+.day small, .cal-grid > small { font-size: .68rem; color: var(--muted); line-height: 1; text-align: center; }
 .day i {
-  display: grid; place-items: center; width: 100%; aspect-ratio: 1; border-radius: 7px;
-  font-style: normal; font-size: .68rem; font-variant-numeric: tabular-nums;
+  display: grid; place-items: center; width: 100%; aspect-ratio: 1; border-radius: 10px;
+  font-style: normal; font-size: .85rem; font-variant-numeric: tabular-nums;
   color: var(--muted); border: 1px dashed var(--line);
 }
 .day.on i { background: #4a3c69; border: 1px solid transparent; color: #e8dcff; font-weight: 600; }
-.day:hover i { border-color: var(--muted); }
+.day:not(:disabled):hover i { border-color: var(--muted); }
 .day.today small { color: var(--text); font-weight: 700; }
 .day.today:not(.on) i { border: 1px dashed var(--accent2); color: var(--accent2); }
+.day-more {
+  display: grid; place-items: center; aspect-ratio: 1; border-radius: 10px; font-size: 1.15rem;
+  color: var(--muted); background: var(--surface2);
+  transition: transform .14s cubic-bezier(.3, 1.4, .5, 1), background-color .2s, color .2s;
+}
+.day-more:active { transform: scale(.85); }
+.day-more.on { background: #43365f; color: #e3d6ff; }
+
+.cal { margin-top: 12px; padding-top: 6px; border-top: 1px solid var(--line); overflow: hidden; }
+.cal-head { display: flex; align-items: center; justify-content: space-between; }
+.cal-head small { color: var(--muted); font-size: .78rem; margin-left: 4px; }
+.cal-head .icon { width: 44px; height: 44px; font-size: 1.5rem; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.cal-grid > small { padding: 2px 0 4px; }
 
 .seg { display: flex; background: var(--surface2); border-radius: var(--chip-radius); padding: 3px; }
 .seg button { padding: 6px 12px; font-size: .8rem; color: var(--muted); border-radius: var(--chip-radius); min-height: 32px; }
