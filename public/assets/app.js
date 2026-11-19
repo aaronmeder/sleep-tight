@@ -60,9 +60,8 @@ let picked = null;         // date selected in the chart
 const sorted = () => Object.values(entries).sort((a, b) => a.date < b.date ? -1 : 1);
 
 function blank(date) {
-  // New night: sensible defaults, clothing carried over from the most recent earlier night.
-  const prev = sorted().filter(e => e.date < date).pop();
-  return { date, hours: 7.5, breaks: 0, quality: 70, clothing: prev ? [...prev.clothing] : [], day: [], evening: [], specifics: [], concerns: [], note: '' };
+  // New night: sensible defaults, nothing pre-selected.
+  return { date, hours: 7.5, breaks: 0, quality: 70, clothing: [], day: [], evening: [], specifics: [], concerns: [], note: '' };
 }
 
 function open(date) {
