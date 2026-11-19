@@ -90,7 +90,7 @@ try {
             header('Content-Type: text/csv; charset=utf-8');
             header('Content-Disposition: attachment; filename="sleep-tight.csv"');
             $f = fopen('php://output', 'w');
-            $cols = ['date', 'hours', 'breaks', 'quality', 'clothing', 'day', 'evening', 'specifics', 'note'];
+            $cols = ['date', 'hours', 'breaks', 'quality', 'clothing', 'day', 'evening', 'specifics', 'concerns', 'note'];
             fputcsv($f, $cols, escape: '');
             foreach (list_entries() as $e) {
                 fputcsv($f, array_map(fn($c) => is_array($e[$c]) ? implode('|', $e[$c]) : $e[$c], $cols), escape: '');

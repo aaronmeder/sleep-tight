@@ -83,6 +83,10 @@ header('Cache-Control: no-store');
     </div>
   </section>
 
+  <section class="card" id="concernsBox" hidden>
+    <h2>Main concerns</h2><div class="chips" data-group="concerns"></div>
+  </section>
+
   <section class="card">
     <h2>Clothing</h2><div class="chips" data-group="clothing"></div>
     <h2>Day before</h2><div class="chips" data-group="day"></div>

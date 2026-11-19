@@ -21,7 +21,18 @@ const TAGS = [
     'specifics' => [
         'woke_early' => 'Woke very early', 'awake_night' => 'Awake during the night', 'no_sleep' => "Couldn't get to sleep",
     ],
+    // Only asked (and only stored) after a rough night, see concerns_apply().
+    'concerns' => [
+        'work' => 'Work', 'personal' => 'Personal', 'dont_know' => "Don't know", 'kids' => 'Kids',
+        'marriage' => 'Marriage', 'world' => 'State of world', 'ai' => 'AI',
+    ],
 ];
+
+/** "Main concerns" is relevant after less than 5 hours of sleep or more than one break. Mirrored in app.js. */
+function concerns_apply(float $hours, int $breaks): bool
+{
+    return $hours < 5 || $breaks > 1;
+}
 
 /** Chip icons: group => slug => icon file in public/assets/icons/ (Phosphor names; custom-* are hand-drawn). */
 const ICONS = [
@@ -32,6 +43,10 @@ const ICONS = [
         'sports' => 'bicycle', 'late' => 'moon-stars', 'spirituality' => 'hands-praying', 'spouse' => 'heart', 'friends' => 'users-three',
     ],
     'specifics' => ['woke_early' => 'sun-horizon', 'awake_night' => 'eye', 'no_sleep' => 'hourglass'],
+    'concerns' => [
+        'work' => 'briefcase', 'personal' => 'user', 'dont_know' => 'question', 'kids' => 'baby',
+        'marriage' => 'heart-break', 'world' => 'globe-hemisphere-west', 'ai' => 'robot',
+    ],
 ];
 
 /** Inline SVG sprite with one <symbol id="i-name"> per icon file. */
@@ -46,7 +61,7 @@ function icon_sprite(): string
     return $out . '</svg>';
 }
 
-const ENTRY_COLS = ['date', 'hours', 'breaks', 'quality', 'clothing', 'day', 'evening', 'specifics', 'note', 'updated_at', 'deleted'];
+const ENTRY_COLS = ['date', 'hours', 'breaks', 'quality', 'clothing', 'day', 'evening', 'specifics', 'concerns', 'note', 'updated_at', 'deleted'];
 
 function db(): PDO
 {
@@ -167,6 +182,7 @@ function clean_entry(array $in): array
         $picked = is_array($in[$group] ?? null) ? $in[$group] : [];
         $row[$group] = json_encode(array_values(array_intersect(array_keys($options), $picked)));
     }
+    if (!concerns_apply($row['hours'], $row['breaks'])) $row['concerns'] = '[]';
     return $row;
 }
 
@@ -219,7 +235,8 @@ function upsert_rows(array $rows, bool $force = false, ?PDO $pdo = null): int
     foreach ($rows as $r) {
         if (!is_array($r) || !valid_date((string) ($r['date'] ?? ''))) continue;
         $params = [];
-        foreach ($cols as $c) $params[":$c"] = $r[$c] ?? null;
+        // rows from an install that has not run 002 yet carry no concerns
+        foreach ($cols as $c) $params[":$c"] = $r[$c] ?? ($c === 'concerns' ? '[]' : null);
         $st->execute($params);
         $n += $st->rowCount();
     }

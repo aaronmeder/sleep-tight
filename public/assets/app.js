@@ -62,7 +62,7 @@ const sorted = () => Object.values(entries).sort((a, b) => a.date < b.date ? -1 
 function blank(date) {
   // New night: sensible defaults, clothing carried over from the most recent earlier night.
   const prev = sorted().filter(e => e.date < date).pop();
-  return { date, hours: 7.5, breaks: 0, quality: 70, clothing: prev ? [...prev.clothing] : [], day: [], evening: [], specifics: [], note: '' };
+  return { date, hours: 7.5, breaks: 0, quality: 70, clothing: prev ? [...prev.clothing] : [], day: [], evening: [], specifics: [], concerns: [], note: '' };
 }
 
 function open(date) {
@@ -70,7 +70,7 @@ function open(date) {
   if (date > today()) date = today();
   const dir = f && date !== f.date ? (date > f.date ? 'from-right' : 'from-left') : null;
   f = entries[date] ? structuredClone(entries[date]) : blank(date);
-  for (const g of GROUPS) f[g] = f[g].filter(slug => slug in TAGS[g]);
+  for (const g of GROUPS) f[g] = (f[g] || []).filter(slug => slug in TAGS[g]);
   dirty = false;
   renderLog();
   if (dir) play($('#view-log'), dir);
@@ -79,6 +79,9 @@ function open(date) {
 // --- log view ---------------------------------------------------------------
 const saveBtn = $('#save');
 const WORDS = [[30, 'rough'], [50, 'poor'], [65, 'okay'], [80, 'good'], [92, 'great'], [101, 'dreamy']];
+
+// "Main concerns" is only asked after a rough night. Mirrors concerns_apply() in lib/app.php.
+const concernsApply = () => f.hours < 5 || f.breaks > 1;
 
 function setFill(input) {
   input.style.setProperty('--p', ((input.value - input.min) / (input.max - input.min)) * 100 + '%');
@@ -99,6 +102,11 @@ function renderValues(changed) {
   set('#breaksOut', f.breaks, 'breaks');
   $('#qualityWord').textContent = '· ' + WORDS.find(([max]) => f.quality < max)[1];
   $$('input[type=range]').forEach(setFill);
+  const box = $('#concernsBox'), show = concernsApply();
+  if (box.hidden === show) {
+    box.hidden = !show;
+    if (show && changed) play(box, 'reveal');
+  }
 }
 
 function renderLog() {
@@ -152,7 +160,7 @@ document.addEventListener('click', e => {
 });
 
 for (const k of ['hours', 'quality']) {
-  $('#' + k).addEventListener('input', e => { f[k] = Number(e.target.value); renderValues(); touch(); });
+  $('#' + k).addEventListener('input', e => { f[k] = Number(e.target.value); renderValues('slide'); touch(); });
 }
 $('#note').addEventListener('input', e => { f.note = e.target.value; touch(); });
 $('#prev').addEventListener('click', () => open(addDays(f.date, -1)));
@@ -162,6 +170,7 @@ $('#datePick').addEventListener('change', e => e.target.value && open(e.target.v
 saveBtn.addEventListener('click', async () => {
   saveBtn.disabled = true;
   try {
+    if (!concernsApply()) f.concerns = [];
     await api('save', f);
     entries[f.date] = structuredClone(f);
     dirty = false;
@@ -326,7 +335,7 @@ function renderImpact() {
   }
   rows.sort((a, b) => b.delta - a.delta);
   const max = Math.max(10, ...rows.map(r => Math.abs(r.delta)));
-  const names = { clothing: '', day: 'day', evening: 'evening', specifics: '' };
+  const names = { clothing: '', day: 'day', evening: 'evening', specifics: '', concerns: 'concern' };
   $('#impact').innerHTML = rows.map((r, i) => {
     const w = Math.abs(r.delta) / max * 50, pos = r.delta >= 0, v = Math.round(r.delta);
     return `<div class="imp">
