@@ -1,3 +1,2 @@
 # Web root. Code, migrations and the database live one level up, outside of it.
-RedirectMatch 404 (^|/)\.(?!well-known)
 Options -Indexes
