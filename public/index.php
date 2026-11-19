@@ -94,9 +94,9 @@ header('Cache-Control: no-store');
     <h2>Specifics</h2><div class="chips" data-group="specifics"></div>
   </section>
 
-  <section class="card">
-    <h2><label for="note">Note</label></h2>
-    <textarea id="note" rows="2" maxlength="2000" placeholder="Anything else…"></textarea>
+  <section class="field">
+    <textarea id="note" rows="2" maxlength="2000" placeholder=" "></textarea>
+    <label for="note">Note</label>
   </section>
 
   <button id="del" class="link danger" hidden>Delete this night</button>

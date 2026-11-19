@@ -97,6 +97,33 @@ textarea, input[type=password] {
 }
 textarea::placeholder, input::placeholder { color: var(--muted); }
 
+/* ---------- note: Material 3 filled text field with floating label ---------- */
+.field {
+  position: relative; margin-bottom: 12px; overflow: hidden;
+  background: var(--surface2); border-radius: 18px 18px 6px 6px;
+  transition: background-color .2s;
+}
+.field:hover, .field:focus-within { background: #312a3b; }
+.field textarea {
+  display: block; width: 100%; min-height: 96px; margin: 0; padding: 30px 16px 14px;
+  background: transparent; border: 0; border-radius: 0; outline: 0; resize: none;
+  field-sizing: content; caret-color: var(--accent2);
+}
+.field label {
+  position: absolute; left: 16px; top: 20px; color: var(--muted); pointer-events: none;
+  transform-origin: 0 0; transition: transform .2s cubic-bezier(.2, .9, .3, 1), color .2s;
+}
+.field textarea:focus + label, .field textarea:not(:placeholder-shown) + label { transform: translateY(-11px) scale(.76); }
+.field textarea:focus + label { color: var(--accent2); }
+/* active indicator: hairline at rest, thick gradient line growing from the centre on focus */
+.field::before, .field::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; pointer-events: none; }
+.field::before { height: 1px; background: var(--muted); }
+.field::after {
+  height: 3px; background: var(--accent-grad); transform: scaleX(0);
+  transition: transform .3s cubic-bezier(.2, .9, .3, 1);
+}
+.field:focus-within::after { transform: scaleX(1); }
+
 /* ---------- buttons ---------- */
 .primary {
   display: block; width: 100%; min-height: 52px; border-radius: var(--chip-radius);
