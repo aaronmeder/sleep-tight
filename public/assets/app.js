@@ -30,7 +30,7 @@ if (auth) {
   auth.addEventListener('submit', async e => {
     e.preventDefault();
     try {
-      await api(auth.dataset.mode, { password: $('#pw').value });
+      await api(auth.dataset.mode, { username: $('#user').value, password: $('#pw').value });
       location.reload();
     } catch (err) {
       $('#authErr').textContent = err.message;

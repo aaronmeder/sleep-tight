@@ -29,8 +29,11 @@ header('Cache-Control: no-store');
 <main class="auth">
   <form id="auth" data-mode="<?= $setup ? 'setup' : 'login' ?>" class="card">
     <h1>Sleep Tight</h1>
-    <p class="muted"><?= $setup ? 'First run: choose a password (min. 8 characters).' : 'Enter your password.' ?></p>
-    <input type="password" id="pw" autocomplete="<?= $setup ? 'new-password' : 'current-password' ?>" placeholder="Password" required autofocus>
+    <p class="muted"><?= $setup ? 'First run: choose a username and a password (min. 8 characters).' : 'Log in to continue.' ?></p>
+    <input type="text" id="user" name="username" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false"
+           placeholder="Username" aria-label="Username" maxlength="50" required autofocus
+           value="<?= $setup ? htmlspecialchars(setting('username') ?? '') : '' ?>">
+    <input type="password" id="pw" name="password" autocomplete="<?= $setup ? 'new-password' : 'current-password' ?>" placeholder="Password" aria-label="Password" required>
     <button class="primary"><?= $setup ? 'Set password' : 'Log in' ?></button>
     <p class="error" id="authErr" role="alert"></p>
   </form>

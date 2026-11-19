@@ -42,7 +42,10 @@ try {
         case 'setup':
             $b = body();
             if (!needs_setup()) out(['error' => 'Already set up'], 403);
+            $user = trim((string) ($b['username'] ?? ''));
+            if ($user === '' || mb_strlen($user) > 50) out(['error' => 'Choose a username'], 422);
             if (strlen((string) ($b['password'] ?? '')) < 8) out(['error' => 'Use at least 8 characters'], 422);
+            set_setting('username', $user);
             set_setting('password_hash', password_hash($b['password'], PASSWORD_DEFAULT));
             start_session();
             out(['ok' => true]);
@@ -50,10 +53,13 @@ try {
         case 'login':
             $b = body();
             check_throttle();
-            if (!password_verify((string) ($b['password'] ?? ''), setting('password_hash') ?? '')) {
+            // always check both, so a wrong username takes as long as a wrong password
+            $userOk = hash_equals(mb_strtolower(setting('username') ?? ''), mb_strtolower(trim((string) ($b['username'] ?? ''))));
+            $passOk = password_verify((string) ($b['password'] ?? ''), setting('password_hash') ?? '');
+            if (!$userOk || !$passOk) {
                 [$fails, $at] = array_map('intval', explode(':', setting('login_fails') ?? '0:0'));
                 set_setting('login_fails', (time() - $at < 300 ? $fails + 1 : 1) . ':' . time());
-                out(['error' => 'Wrong password'], 401);
+                out(['error' => 'Wrong username or password'], 401);
             }
             set_setting('login_fails', '0:0');
             start_session();

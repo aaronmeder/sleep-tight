@@ -91,9 +91,9 @@ input[type=range]::-moz-range-thumb {
 }
 .chip.on { background: var(--accent-grad); color: var(--accent-ink); font-weight: 600; }
 
-textarea, input[type=password] {
-  display: block; width: 100%; margin-top: 10px; padding: 12px;
-  background: var(--surface2); border: 1px solid var(--line); border-radius: var(--chip-radius); resize: vertical;
+textarea, input[type=password], input[type=text] {
+  display: block; width: 100%; margin-top: 10px; padding: 14px 16px;
+  background: var(--surface2); border: 1px solid var(--line); border-radius: 16px; resize: vertical;
 }
 textarea::placeholder, input::placeholder { color: var(--muted); }
 
